@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>史記 · 讀書長卷</title><meta name="description" content="從零開始讀《論語》與《史記》的筆記。"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet"><script src="/classics-notes/bamboo.js"></script><link rel="stylesheet" href="/classics-notes/_astro/Base.DzP6Uz_T.css"></head><body class="no-anim"><header class="site-head"><a class="site-name" href="/classics-notes/">讀書長卷</a><nav class="site-nav"><a href="/classics-notes/lunyu/">論語</a><a href="/classics-notes/shiji/" aria-current="page">史記</a><a href="/classics-notes/about/">關於</a></nav></header><main class="book-wrap"><div class="crumb"><a href="/classics-notes/">首頁</a>　/　史記</div><div class="book-head"><h1>史記</h1><p>司馬遷 · 一百三十卷 · 尚未開卷</p></div><div class="shelf-end" id="head-tag"></div><div id="shelves"></div><div class="shelf-end" id="foot-tag"></div></main><div class="shelf-tip" id="tip" role="tooltip"></div><script>(function(){const TI = [["本紀","本紀","五帝 夏 殷 周 秦 秦始皇 項羽 高祖 呂太后 孝文 孝景 孝武"],["表","表","三代 十二諸侯 六國 秦楚之際 漢興以來諸侯王 高祖功臣侯者 惠景間侯者 建元以來侯者 建元以來王子侯者 漢興以來將相名臣"],["書","書","禮 樂 律 曆 天官 封禪 河渠 平準"],["世家","世家","吳太伯 齊太公 魯周公 燕召公 管蔡 陳杞 衛康叔 宋微子 晉 楚 越王句踐 鄭 趙 魏 韓 田敬仲完 孔子 陳涉 外戚 楚元王 荊燕 齊悼惠王 蕭相國 曹相國 留侯 陳丞相 絳侯周勃 梁孝王 五宗 三王"],["列傳","列傳","伯夷 管晏 老子韓非 司馬穰苴 孫子吳起 伍子胥 仲尼弟子 商君 蘇秦 張儀 樗里子甘茂 穰侯 白起王翦 孟子荀卿 孟嘗君 平原君虞卿 魏公子 春申君 范雎蔡澤 樂毅 廉頗藺相如 田單 魯仲連鄒陽 屈原賈生 呂不韋 刺客 李斯 蒙恬 張耳陳餘 魏豹彭越 黥布 淮陰侯 韓信盧綰 田儋 樊酈滕灌 張丞相 酈生陸賈 傅靳蒯成 劉敬叔孫通 季布欒布 袁盎鼂錯 張釋之馮唐 萬石張叔 田叔 扁鵲倉公 吳王濞 魏其武安侯 韓長孺 李將軍 匈奴 衛將軍驃騎 平津侯主父 南越 東越 朝鮮 西南夷 司馬相如 淮南衡山 循吏 汲鄭 儒林 酷吏 大宛 游俠 佞幸 滑稽 日者 龜策 貨殖 太史公自序"]];
+const FULL = {"三代":"三代世表","秦楚之際":"秦楚之際月表","太史公自序":"太史公自序"};
+const READ = {};
+const ENDS = [false,false];
+
+  Bamboo.installDefs();
+  const D = '〇一二三四五六七八九';
+  const num = n => n < 10 ? D[n] : n < 20 ? '十' + (n % 10 ? D[n % 10] : '') : n < 100 ? D[Math.floor(n / 10)] + '十' + (n % 10 ? D[n % 10] : '') :
+    '一百' + (n === 100 ? '' : n % 100 < 10 ? '零' + D[n % 100] : n % 100 < 20 ? '一' + num(n % 100) : num(n % 100));
+
+  let no = 0;
+  const shelves = TI.map(([label, suf, list]) => ({
+    label,
+    items: list.split(' ').map(t => {
+      no++;
+      const full = FULL[t] || (suf === '表' ? t + '年表' : t + suf);
+      return { title: t, full, no, read: t in READ, notes: READ[t] };
+    }),
+  }));
+
+  // 書架上的一捆：只畫捲起的一端；讀過的露出兩片竹簡
+  const H = innerWidth < 760 ? 132 : 168;
+  const SPINE = innerWidth < 760 ? 32 : 38, PEEK = 28, GAP = innerWidth < 760 ? 4 : 6;
+  const fontFor = t => Math.max(10, Math.min(15, Math.floor(H * 0.74 / (t.length * 1.25))));
+  function drawSpine(host, it, seed) {
+    Bamboo.bundle(host, {
+      H, W: SPINE, cords: [0.08, 0.92], titleY: 0.13, clear: true,
+      slipsWidth: PEEK, reveal: it.read ? PEEK : 0,
+      title: it.tag || it.title, seed,
+      fontSize: fontFor(it.tag || it.title),
+    });
+  }
+  const widthOf = it => SPINE + (it.read ? PEEK - 3 : 0) + GAP;
+
+  const tip = document.getElementById('tip');
+  const hoverable = matchMedia('(hover: hover)').matches;
+  let tipFor = null;
+  function showTip(a, it) {
+    tip.innerHTML = '<b></b><span></span>';
+    tip.querySelector('b').textContent = it.full;
+    tip.querySelector('span').textContent = (it.no ? '卷' + num(it.no) + ' · ' : '') + it.status;
+    tip.classList.add('show');
+    const r = a.getBoundingClientRect(), tw = tip.offsetWidth;
+    tip.style.left = Math.max(8, Math.min(innerWidth - tw - 8, r.left + r.width / 2 - tw / 2)) + scrollX + 'px';
+    tip.style.top = r.top + scrollY - tip.offsetHeight - 6 + 'px';
+    tipFor = a;
+  }
+  function hideTip() { tip.classList.remove('show'); tipFor = null; }
+
+  function makeLink(it, seed) {
+    const a = document.createElement('a');
+    a.className = 'spine' + (it.read ? ' is-read' : '');
+    a.href = '#';
+    a.setAttribute('aria-label', it.full + '，' + it.status);
+    const host = document.createElement('div');
+    a.append(host);
+    drawSpine(host, it, seed);
+    if (hoverable) {
+      a.addEventListener('mouseenter', () => showTip(a, it));
+      a.addEventListener('mouseleave', hideTip);
+    }
+    a.addEventListener('focus', () => showTip(a, it));
+    a.addEventListener('blur', hideTip);
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      // 觸控：第一下看說明，第二下才進入
+      if (!hoverable && tipFor !== a) { showTip(a, it); return; }
+      toast('《史記》的卷頁還沒做');
+    });
+    return a;
+  }
+  shelves.forEach(s => s.items.forEach(it => it.status = it.read ? '已讀 · 筆記 ' + it.notes + ' 則' : '未讀'));
+
+  // 卷首導讀、跋：直接寫在竹簡上
+  [['head-tag', { tag: '卷首導讀', full: '卷首導讀', status: '讀前寫 · ' + (ENDS[0] ? '已寫' : '還沒寫'), read: ENDS[0] }, 3],
+   ['foot-tag', { tag: '跋', full: '跋', status: '讀完後寫 · ' + (ENDS[1] ? '已寫' : '還沒寫'), read: ENDS[1] }, 5]].forEach(([id, it, seed]) => {
+    const box = document.getElementById(id);
+    box.append(makeLink(it, seed));
+    const cap = document.createElement('div');
+    cap.className = 'end-cap';
+    cap.innerHTML = '<b></b><span></span>';
+    cap.querySelector('b').textContent = it.full;
+    cap.querySelector('span').textContent = it.status;
+    box.append(cap);
+  });
+
+  // 依書架寬度把每一層分成幾排，每排底下一塊木板；寬度改變時重排
+  const wrap = document.getElementById('shelves');
+  let lastW = 0;
+  function render() {
+    const total = wrap.clientWidth;
+    if (total < 200) { setTimeout(render, 100); return; }
+    if (Math.abs(total - lastW) < 2) return;
+    lastW = total;
+    hideTip();
+    wrap.innerHTML = '';
+    let seed = 40;
+    shelves.forEach(s => {
+      const sec = document.createElement('section');
+      sec.className = 'shelf';
+      sec.innerHTML = '<div class="plaque"><span></span><small></small></div><div class="shelf-rows"></div>';
+      sec.querySelector('.plaque span').textContent = s.label;
+      sec.querySelector('.plaque small').textContent = num(s.items.length) + '卷';
+      wrap.append(sec);
+      const rowsEl = sec.querySelector('.shelf-rows');
+      const avail = rowsEl.clientWidth - 24;
+      let row = null, used = 0;
+      s.items.forEach(it => {
+        const w = widthOf(it);
+        if (!row || used + w > avail) {
+          row = document.createElement('div');
+          row.className = 'shelf-row';
+          rowsEl.append(row);
+          used = 0;
+        }
+        row.append(makeLink(it, seed += 7));
+        used += w;
+      });
+    });
+  }
+  render();
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 200); });
+  document.addEventListener('click', e => { if (!hoverable && tipFor && !tipFor.contains(e.target)) hideTip(); });
+
+})();</script><footer class="site-foot">讀書長卷 · 從零開始讀《論語》與《史記》</footer><div class="toast" id="toast" role="status"></div><script>
+  window.toast = (function () {
+    let tt;
+    return function (msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2200); };
+  })();
+</script></body></html>
